@@ -1,0 +1,57 @@
+syntax = "proto3";
+package onka.v1alpha1;
+option go_package = "github.com/rkrmr33/onka/pkg/proto/v1alpha1";
+
+import "pkg/proto/v1alpha1/task.proto";
+import "pkg/proto/v1alpha1/runtime.proto";
+
+import "google/protobuf/timestamp.proto";
+
+service DaemonService {
+    rpc RunTask(RunTaskRequest) returns (stream RunTaskResponse);
+    
+    rpc Info(InfoRequest) returns (InfoResponse);
+
+    rpc StopRuntime(StopRuntimeRequest) returns (StopRuntimeResponse);
+
+    rpc StartRuntime(StartRuntimeRequest) returns (StartRuntimeResponse);
+}
+
+message InfoRequest {}
+
+message InfoResponse {
+    string daemon_version = 1;
+    RuntimeInfo runtime = 3;
+}
+
+message RunTaskRequest {
+    Task task = 1;
+    bool watch = 2;
+}
+
+message RunTaskResponse {
+    oneof event {
+        LogEntry log_event = 1;
+        TaskStatus status_event = 2;
+    }
+}
+
+message LogEntry {
+    bytes data = 1;
+    Stream stream = 2;
+    google.protobuf.Timestamp timestamp = 3;
+}
+
+message StopRuntimeRequest {}
+
+message StopRuntimeResponse {}
+
+message StartRuntimeRequest {}
+
+message StartRuntimeResponse {}
+
+enum Stream {
+    OUT = 0;
+    ERR = 1;
+    IN = 2;
+}

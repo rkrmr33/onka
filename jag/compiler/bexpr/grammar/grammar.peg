@@ -1,0 +1,127 @@
+{
+package grammar
+
+import (
+    "github.com/rkrmr33/onka/pkg/proto/v1alpha1"
+)
+
+var ops = map[string]func(l, r bool) bool {
+    "&&": func(l, r bool) bool {
+        return l && r
+    },
+    "||": func(l, r bool) bool {
+        return l || r
+    },
+}
+
+func toSlice(i interface{}) []interface{} {
+    if i == nil {
+        return nil
+    }
+
+    return i.([]interface{})
+}
+
+func eval(first, rest interface{}) bool {
+    l := first.(bool)
+    
+    for _, s := range toSlice(rest) {
+        restExpr := toSlice(s)
+        r := restExpr[3].(bool)
+        op := restExpr[1].(string)
+        l = ops[op](l, r)
+    }
+
+    return l
+}
+
+func (c *current) getTaskState(name string) v1alpha1.TaskState {
+    statuses := c.globalStore["statuses"].(map[string]*v1alpha1.TaskStatus)
+    return statuses[name].State
+}
+
+func (c *current) taskExists(name string) bool {
+    statuses := c.globalStore["statuses"].(map[string]*v1alpha1.TaskStatus)
+    _, exists := statuses[name]
+    return exists
+}
+
+func (c *current) addDependencyOn(name string) error {
+    cur := c.globalStore["current"].(string)
+    if cur == name {
+        return fmt.Errorf("circular dependency in task: %s", name)
+    }
+    tasksIface := c.globalStore["tasks"]
+    if tasksIface == nil {
+        return nil
+    }
+    tasks := tasksIface.(map[string]*v1alpha1.PipelineTask)
+    task := tasks[name]
+    for _, dep := range task.Dependants {
+        if dep.Name == cur {
+            return nil // already added as dependant
+        }
+    }
+
+    task.Dependants = append(task.Dependants, tasks[cur])
+    return nil
+}
+
+}
+
+Expression <- expr:SubExpression _ EOF {
+    return expr, nil
+}
+
+SubExpression <- BinaryExpr / SurroundedExpr / UnaryExpr
+
+SurroundedExpr <- '(' _ expr:SubExpression _ ')' {
+    return expr, nil
+}
+
+BinaryExpr <- _ first:(SurroundedExpr / UnaryExpr) rest:(_ (And / Or) _ (SurroundedExpr / UnaryExpr))* {
+    return eval(first, rest), nil
+}
+
+UnaryExpr <- Not expr:Expression {
+    return !(expr.(bool)), nil
+} / Maybe ident:Identifier {
+    state := c.getTaskState(ident.(string))
+    return state.IsFinal(), nil
+} / ident:Identifier {
+    state := c.getTaskState(ident.(string))
+    return state == v1alpha1.TaskState_TASK_STATE_SUCCESS, nil
+}
+
+Or <- "||" {
+    return string(c.text), nil
+}
+
+And <- "&&" {
+    return string(c.text), nil
+}
+
+Not <- '!' {
+    return string(c.text), nil
+}
+
+Maybe <- '^' {
+    return string(c.text), nil
+}
+
+Identifier "identifier" <- ident:([a-zA-Z]+ [a-zA-Z0-9_]*) {
+    identStr := string(c.text)
+    exists := c.taskExists(identStr)
+    if !exists {
+        return false, fmt.Errorf("bad identifier: %s", identStr)
+    }
+    if err := c.addDependencyOn(identStr); err != nil {
+        return false, err
+    }
+
+    return identStr, nil
+}
+
+_ "whitespace" <- [ \t\r\n]*
+
+EOF "EOF" <- !.

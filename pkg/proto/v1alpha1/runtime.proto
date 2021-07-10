@@ -1,0 +1,40 @@
+syntax = "proto3";
+package onka.v1alpha1;
+option go_package = "github.com/rkrmr33/onka/pkg/proto/v1alpha1";
+
+enum RuntimeState {
+    RUNTIME_STATE_UNSPECIFIED = 0;
+    RUNTIME_STATE_RUNNING = 1;
+    RUNTIME_STATE_STOPPED = 2;
+    RUNTIME_STATE_ERROR = 3;
+}
+
+message RuntimeInfo {
+    RuntimeState state = 1;
+    string cause = 2;
+    string type = 3;
+
+    oneof runtime {
+        DockerMachineInfo docker_machine = 4;
+        DockerNativeInfo docker_native = 5;
+    }
+}
+
+message DockerMachineInfo {
+    string driver = 1;
+    int64 mem = 2;
+    int32 cpu = 3;
+    string kernel_version = 4;
+    string engine_version = 5;
+    string engine_os_arch = 6;
+    string client_version = 7;
+    string client_os_arch = 8;
+}
+
+message DockerNativeInfo {
+    string kernel_version = 1;
+    string engine_version = 2;
+    string engine_os_arch = 3;
+    string client_version = 4;
+    string client_os_arch = 5;
+}

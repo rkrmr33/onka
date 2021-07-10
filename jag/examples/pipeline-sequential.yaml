@@ -1,0 +1,33 @@
+{{ import "std" }}
+
+version: v1alpha1
+kind: Pipeline
+metadata:
+  name: test-pipeline
+spec:
+
+  params:
+  - name: VAR1
+    default: FOO
+  
+  - name: REPO_URL
+    # no default means it's required and the pipeline won't start without it
+
+  tasks:
+    t1:
+      image: codefresh/cli
+      commands:
+      - echo hello1
+      - sleep 5
+
+    t2:
+      image: alpine:3.13
+      commands:
+      - echo hello2
+
+    t3:
+      image: ubuntu:latest
+      commands:
+      - echo bye!!!
+
+

@@ -1,0 +1,43 @@
+{{ import "std" }}
+
+version: v1alpha1
+kind: Pipeline
+metadata:
+  name: test-pipeline
+spec:
+
+  params:
+  - name: VAR1
+    default: FOO
+  
+  - name: REPO_URL
+    # no default means it's required and the pipeline won't start without it
+
+  tasks:
+    t1:
+      image: alpine:3.13
+      commands:
+      - echo hello1
+      - sleep 3
+
+    t2:
+      image: alpine:3.13
+      commands:
+      - echo hello2
+      - sleep 3
+      needs: t1
+
+    t3:
+      image: alpine:3.13
+      commands:
+      - echo bye!!!
+      needs: t1
+    
+    t4:
+      image: busybox:latest
+      commands:
+      - echo test
+      - exit 0
+      needs: t2 && t3
+
+

@@ -1,0 +1,33 @@
+{{ import "std" }}
+
+version: v1alpha1
+kind: Pipeline
+metadata:
+  name: test-pipeline
+spec:
+
+  params:
+  - name: VAR1
+    default: FOO
+  
+  - name: REPO_URL
+    # no default means it's required and the pipeline won't start without it
+
+  tasks:
+    clone:
+      <<: *clone
+      args:
+        repo: '{{.trigger.REPO_URL}}'
+        revision: '{{.trigger.revision}}'
+
+    lint:
+      image: golang:1.16
+      commands:
+      - make lint
+
+    test:
+      image: golang:1.16
+      commands:
+      - make test
+
+

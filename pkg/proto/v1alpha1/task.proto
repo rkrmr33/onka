@@ -1,0 +1,38 @@
+syntax = "proto3";
+package onka.v1alpha1;
+option go_package = "github.com/rkrmr33/onka/pkg/proto/v1alpha1";
+
+import "google/protobuf/timestamp.proto";
+import "pkg/proto/v1alpha1/metadata.proto";
+
+enum TaskState {
+    TASK_STATE_UNSPECIFIED = 0;
+    TASK_STATE_PENDING = 1;
+    TASK_STATE_PREPARE = 2;
+    TASK_STATE_RUNNING = 3;
+    TASK_STATE_SUCCESS = 4;
+    TASK_STATE_FAILURE = 5;
+    TASK_STATE_ERROR = 6;
+}
+
+message Task {
+    Metadata metadata = 1;
+    TaskSpec spec = 2;
+    repeated TaskStatus statuses = 3;
+}
+
+message TaskSpec {
+    string image = 1;
+    string entrypoint = 2;
+    repeated string commands = 3;
+    repeated string env = 4;
+    string shell = 5;
+    map<string, string> args = 6;
+    string needs = 7;
+}
+
+message TaskStatus {
+    TaskState state = 1;
+    string cause = 2;
+    google.protobuf.Timestamp from = 3;
+}

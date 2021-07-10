@@ -1,0 +1,40 @@
+syntax = "proto3";
+package onka.v1alpha1;
+option go_package = "github.com/rkrmr33/onka/pkg/proto/v1alpha1";
+
+import "google/protobuf/timestamp.proto";
+import "pkg/proto/v1alpha1/metadata.proto";
+import "pkg/proto/v1alpha1/task.proto";
+
+enum PipelineState {
+    PIPELINE_STATE_UNSPECIFIED = 0;
+    PIPELINE_STATE_PENDING = 1;
+    PIPELINE_STATE_PREPARE = 2;
+    PIPELINE_STATE_RUNNING = 3;
+    PIPELINE_STATE_SUCCESS = 4;
+    PIPELINE_STATE_FAILURE = 5;
+    PIPELINE_STATE_ERROR = 6;
+}
+
+message Pipeline {
+    Metadata metadata = 1;
+    PipelineSpec spec = 2;
+    repeated PipelineStatus statuses = 3;
+}
+
+message PipelineSpec {
+    repeated PipelineParam params = 1;
+    map<string, TaskSpec> tasks = 2;
+}
+
+message PipelineParam {
+    string name = 1;
+    string default = 2;
+    string value = 3;
+}
+
+message PipelineStatus {
+    PipelineState state = 1;
+    string cause = 2;
+    google.protobuf.Timestamp from = 3;
+}

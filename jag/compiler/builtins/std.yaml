@@ -1,0 +1,6 @@
+std:
+  clone: &clone
+    image: quay.io/onkaci/cloner:latest
+
+  push: &push
+    image: quay.io/onkaci/pusher:latest

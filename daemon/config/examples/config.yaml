@@ -1,0 +1,9 @@
+daemon: 
+  maxCpu: 2
+  maxRam: 423
+server:
+  listen: :6544
+runtime:
+  type: docker-machine
+  config: 
+    dockerMachineName: onka-runtime

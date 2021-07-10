@@ -1,0 +1,10 @@
+syntax = "proto3";
+package onka.v1alpha1;
+option go_package = "github.com/rkrmr33/onka/pkg/proto/v1alpha1";
+
+import "google/protobuf/timestamp.proto";
+
+message Metadata {
+    string id = 1;
+    google.protobuf.Timestamp created_at = 2;
+}
